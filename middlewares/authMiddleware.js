@@ -25,14 +25,16 @@ export const protect = async (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    if (!decoded?.id) {
+    const userId = decoded.id || decoded._id || decoded.userId;
+
+    if (!userId) {
       return res.status(401).json({
         success: false,
         message: "Invalid token payload",
       });
     }
 
-    const user = await User.findById(decoded.id).select("-password");
+    const user = await User.findById(userId).select("-password");
 
     if (!user) {
       return res.status(401).json({
@@ -87,7 +89,7 @@ export const adminOnly = (req, res, next) => {
     }
 
     next();
-  } catch (err) {
+  } catch {
     return res.status(500).json({
       success: false,
       message: "Server error in admin check",

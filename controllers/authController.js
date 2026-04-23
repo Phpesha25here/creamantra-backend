@@ -2,9 +2,6 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import User from "../models/userModel.js";
 
-/* =========================
-   🔧 GENERATE TOKEN
-========================= */
 const generateToken = (user) => {
   return jwt.sign(
     {
@@ -16,9 +13,6 @@ const generateToken = (user) => {
   );
 };
 
-/* =========================
-   📝 REGISTER USER
-========================= */
 export const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -31,6 +25,7 @@ export const registerUser = async (req, res) => {
     }
 
     const existingUser = await User.findOne({ email });
+
     if (existingUser) {
       return res.status(400).json({
         success: false,
@@ -44,22 +39,22 @@ export const registerUser = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      isAdmin: false, // default
+      isAdmin: false,
     });
 
     const token = generateToken(user);
 
-    res
+    return res
       .cookie("token", token, {
         httpOnly: true,
-        secure: false, // set true in production (HTTPS)
+        secure: false,
         sameSite: "lax",
       })
       .status(201)
       .json({
         success: true,
         message: "User registered successfully",
-        token, // ✅ important for frontend
+        token,
         user: {
           _id: user._id,
           name: user.name,
@@ -67,18 +62,14 @@ export const registerUser = async (req, res) => {
           isAdmin: user.isAdmin,
         },
       });
-  } catch (error) {
-    console.log("REGISTER ERROR:", error);
-    res.status(500).json({
+  } catch {
+    return res.status(500).json({
       success: false,
       message: "Server error",
     });
   }
 };
 
-/* =========================
-   🔐 LOGIN USER
-========================= */
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -110,17 +101,17 @@ export const loginUser = async (req, res) => {
 
     const token = generateToken(user);
 
-    res
+    return res
       .cookie("token", token, {
         httpOnly: true,
-        secure: false, // true in production
+        secure: false,
         sameSite: "lax",
       })
       .status(200)
       .json({
         success: true,
         message: "Login successful",
-        token, // ✅ VERY IMPORTANT
+        token,
         user: {
           _id: user._id,
           name: user.name,
@@ -128,21 +119,17 @@ export const loginUser = async (req, res) => {
           isAdmin: user.isAdmin,
         },
       });
-  } catch (error) {
-    console.log("LOGIN ERROR:", error);
-    res.status(500).json({
+  } catch {
+    return res.status(500).json({
       success: false,
       message: "Internal Server Error",
     });
   }
 };
 
-/* =========================
-   🚪 LOGOUT USER
-========================= */
 export const logoutUser = async (req, res) => {
   try {
-    res
+    return res
       .clearCookie("token", {
         httpOnly: true,
         sameSite: "lax",
@@ -152,28 +139,22 @@ export const logoutUser = async (req, res) => {
         success: true,
         message: "Logged out successfully",
       });
-  } catch (error) {
-    console.log("LOGOUT ERROR:", error);
-    res.status(500).json({
+  } catch {
+    return res.status(500).json({
       success: false,
       message: "Logout failed",
     });
   }
 };
 
-/* =========================
-   👤 GET CURRENT USER
-========================= */
 export const getMe = async (req, res) => {
   try {
-    // req.user comes from protect middleware
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       user: req.user,
     });
-  } catch (error) {
-    console.log("GETME ERROR:", error);
-    res.status(500).json({
+  } catch {
+    return res.status(500).json({
       success: false,
       message: "Failed to fetch user",
     });
