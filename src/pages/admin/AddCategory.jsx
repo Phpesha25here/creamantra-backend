@@ -33,7 +33,7 @@ const AddCategory = () => {
       form.append("image", file);
 
       const response = await axios.post(
-        "http://localhost:5000/api/category/add",
+        "https://creamantra-backend.onrender.com/api/category/add",
         form,
         {
           withCredentials: true,

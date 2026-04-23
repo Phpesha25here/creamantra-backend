@@ -47,7 +47,7 @@ const Contact = () => {
 
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/contact",
+        "https://creamantra-backend.onrender.com/api/contact",
         formData
       );
 

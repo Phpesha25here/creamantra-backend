@@ -6,7 +6,7 @@ import dotenv from "dotenv";
 import { connectDB } from "./config/db.js";
 import connectCloudinary from "./config/cloudinary.js";
 
-// Routes
+
 import authRoutes from "./routes/authRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import menuRoutes from "./routes/menuRoutes.js";
@@ -21,24 +21,28 @@ dotenv.config();
 
 const app = express();
 
-/* ---------------- MIDDLEWARES ---------------- */
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://127.0.0.1:5173"],
+    origin: [
+      "http://localhost:5173",
+      "http://127.0.0.1:5173",
+      "https://creamantra-frontend.vercel.app", 
+    ],
     credentials: true,
   })
 );
 
-/* ---------------- DB CONNECTION ---------------- */
+
 const startServer = async () => {
   try {
     await connectDB();
     connectCloudinary();
-
     console.log("✅ Database & Cloudinary connected");
   } catch (error) {
     console.error("❌ DB Connection Error:", error);
@@ -48,7 +52,7 @@ const startServer = async () => {
 
 startServer();
 
-/* ---------------- ROUTES ---------------- */
+
 app.get("/", (req, res) => {
   res.send("Server is running 🚀");
 });
@@ -60,9 +64,7 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/order", orderRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/contact", contactRoutes);
-
-// ⚠️ IMPORTANT: keep this consistent
-app.use("/api/report", reportRoutes); // 👈 FIXED (singular)
+app.use("/api/report", reportRoutes);
 app.use("/api/users", userRoutes);
 
 /* ---------------- ERROR HANDLING ---------------- */

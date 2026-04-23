@@ -29,7 +29,7 @@ const Dashboard = () => {
     const fetchDashboardStats = async () => {
       try {
         const { data } = await axios.get(
-          "http://localhost:5000/api/report/dashboard",
+          "https://creamantra-backend.onrender.com/api/report/dashboard",
           { withCredentials: true }
         );
 

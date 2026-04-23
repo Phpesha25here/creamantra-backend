@@ -11,7 +11,7 @@ const Customers = () => {
         const token = localStorage.getItem("token");
 
         const { data } = await axios.get(
-          "http://localhost:5000/api/users",
+          "https://creamantra-backend.onrender.com/api/users",
           {
             headers: {
               Authorization: `Bearer ${token}`,

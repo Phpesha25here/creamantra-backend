@@ -31,7 +31,7 @@ const AdminLogin = () => {
       setLoading(true);
 
       const { data } = await axios.post(
-        "http://localhost:5000/api/auth/login",
+        "https://creamantra-backend.onrender.com/api/auth/login",
         formData,
         { withCredentials: true }
       );

@@ -32,7 +32,7 @@ const Signup = () => {
       setLoading(true);
 
       const res = await axios.post(
-        "http://localhost:5000/api/auth/register",
+        "https://creamantra-backend.onrender.com/api/auth/register",
         formData
       );
 
