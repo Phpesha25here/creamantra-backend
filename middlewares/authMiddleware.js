@@ -5,17 +5,17 @@ export const protect = async (req, res, next) => {
   try {
     let token;
 
-   
-    if (req.headers.authorization && req.headers.authorization.startsWith("Bearer ")) {
+    if (
+      req.headers.authorization &&
+      req.headers.authorization.startsWith("Bearer ")
+    ) {
       token = req.headers.authorization.split(" ")[1];
     }
 
-   
     if (!token && req.cookies?.token) {
       token = req.cookies.token;
     }
 
-    
     if (!token) {
       return res.status(401).json({
         success: false,
@@ -25,7 +25,6 @@ export const protect = async (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // ❌ Invalid payload
     if (!decoded?.id) {
       return res.status(401).json({
         success: false,
@@ -33,7 +32,6 @@ export const protect = async (req, res, next) => {
       });
     }
 
-   
     const user = await User.findById(decoded.id).select("-password");
 
     if (!user) {
@@ -43,15 +41,11 @@ export const protect = async (req, res, next) => {
       });
     }
 
-  
     req.user = user;
     req.userId = user._id;
 
     next();
-
   } catch (err) {
-    console.error("AUTH ERROR:", err.message);
-
     if (err.name === "TokenExpiredError") {
       return res.status(401).json({
         success: false,
@@ -73,8 +67,6 @@ export const protect = async (req, res, next) => {
   }
 };
 
-
-
 export const adminOnly = (req, res, next) => {
   try {
     if (!req.user) {
@@ -95,10 +87,7 @@ export const adminOnly = (req, res, next) => {
     }
 
     next();
-
   } catch (err) {
-    console.error("ADMIN ERROR:", err.message);
-
     return res.status(500).json({
       success: false,
       message: "Server error in admin check",

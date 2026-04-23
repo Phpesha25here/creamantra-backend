@@ -1,5 +1,6 @@
 import Booking from "../models/bookingModel.js";
 
+// ---------------- CREATE BOOKING ----------------
 export const createBooking = async (req, res) => {
   try {
     let { name, email, phone, members, date, time, message } = req.body;
@@ -11,9 +12,17 @@ export const createBooking = async (req, res) => {
       });
     }
 
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized user",
+      });
+    }
+
     email = email.trim().toLowerCase();
 
-    const emailRegex = /^[A-Za-z0-9]+(\.[A-Za-z0-9]+){0,2}@[A-Za-z0-9]+(\.[A-Za-z0-9]+){1,2}$/;
+    const emailRegex =
+      /^[A-Za-z0-9]+(\.[A-Za-z0-9]+){0,2}@[A-Za-z0-9]+(\.[A-Za-z0-9]+){1,2}$/;
 
     if ((email.match(/@/g) || []).length !== 1 || !emailRegex.test(email)) {
       return res.status(400).json({
@@ -22,7 +31,12 @@ export const createBooking = async (req, res) => {
       });
     }
 
-    const existingUserBooking = await Booking.findOne({ email, date, time });
+    // prevent duplicate booking same slot
+    const existingUserBooking = await Booking.findOne({
+      user: req.user._id,
+      date,
+      time,
+    });
 
     if (existingUserBooking) {
       return res.status(400).json({
@@ -31,6 +45,7 @@ export const createBooking = async (req, res) => {
       });
     }
 
+    // slot limit check
     const slotCount = await Booking.countDocuments({ date, time });
 
     if (slotCount >= 5) {
@@ -41,7 +56,7 @@ export const createBooking = async (req, res) => {
     }
 
     const booking = await Booking.create({
-      user: req.user?._id,
+      user: req.user._id,
       name,
       email,
       phone,
@@ -57,13 +72,6 @@ export const createBooking = async (req, res) => {
       booking,
     });
   } catch (error) {
-    if (error.code === 11000) {
-      return res.status(400).json({
-        success: false,
-        message: "You have already booked this slot",
-      });
-    }
-
     return res.status(500).json({
       success: false,
       message: "Booking failed",
@@ -71,9 +79,17 @@ export const createBooking = async (req, res) => {
   }
 };
 
+// ---------------- GET USER BOOKINGS ----------------
 export const getUserBookings = async (req, res) => {
   try {
-    const bookings = await Booking.find({ user: req.user?._id }).sort({
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized user",
+      });
+    }
+
+    const bookings = await Booking.find({ user: req.user._id }).sort({
       createdAt: -1,
     });
 
@@ -89,6 +105,7 @@ export const getUserBookings = async (req, res) => {
   }
 };
 
+// ---------------- GET ALL BOOKINGS (ADMIN) ----------------
 export const getAllBookings = async (req, res) => {
   try {
     const bookings = await Booking.find()
@@ -107,6 +124,7 @@ export const getAllBookings = async (req, res) => {
   }
 };
 
+// ---------------- UPDATE BOOKING STATUS ----------------
 export const updateBookingStatus = async (req, res) => {
   try {
     const { status } = req.body;
