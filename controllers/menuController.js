@@ -1,17 +1,12 @@
-
-
 import Menu from "../models/menuModel.js";
-
 
 export const addMenuItem = async (req, res) => {
   try {
-    console.log("🔥 ADD MENU HIT");
-
     const { name, description, price, category } = req.body;
 
-   
-    const image = req.file ? req.file.path : null;
-
+    const image = req.file
+      ? `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`
+      : null;
 
     if (!name || !description || !price || !category || !image) {
       return res.status(400).json({
@@ -28,16 +23,12 @@ export const addMenuItem = async (req, res) => {
       image,
     });
 
-    console.log("✅ SAVED:", newMenu);
-
     res.status(201).json({
       success: true,
       message: "Menu item added",
       menuItem: newMenu,
     });
   } catch (error) {
-    console.log("❌ ADD ERROR:", error);
-
     res.status(500).json({
       success: false,
       message: error.message,
@@ -47,8 +38,6 @@ export const addMenuItem = async (req, res) => {
 
 export const getAllMenuItems = async (req, res) => {
   try {
-    console.log("🔥 GET MENU HIT");
-
     const menuItems = await Menu.find().populate("category");
 
     res.json({
@@ -56,8 +45,6 @@ export const getAllMenuItems = async (req, res) => {
       menuItems,
     });
   } catch (error) {
-    console.log("❌ GET ERROR:", error);
-
     res.status(500).json({
       success: false,
       message: error.message,
@@ -65,18 +52,14 @@ export const getAllMenuItems = async (req, res) => {
   }
 };
 
-
 export const updateMenuItem = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const updateData = {
-      ...req.body,
-    };
+    const updateData = { ...req.body };
 
-    // ✅ if new image uploaded
     if (req.file) {
-      updateData.image = req.file.path;
+      updateData.image = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
     }
 
     const updatedMenu = await Menu.findByIdAndUpdate(id, updateData, {
@@ -89,15 +72,12 @@ export const updateMenuItem = async (req, res) => {
       menuItem: updatedMenu,
     });
   } catch (error) {
-    console.log("❌ UPDATE ERROR:", error);
-
     res.status(500).json({
       success: false,
       message: error.message,
     });
   }
 };
-
 
 export const deleteMenuItem = async (req, res) => {
   try {
@@ -110,8 +90,6 @@ export const deleteMenuItem = async (req, res) => {
       message: "Menu item deleted",
     });
   } catch (error) {
-    console.log("❌ DELETE ERROR:", error);
-
     res.status(500).json({
       success: false,
       message: error.message,
