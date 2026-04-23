@@ -9,9 +9,8 @@ import { protect, adminOnly } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
-router.post("/", protect, createBooking);
+router.post("/", createBooking);
 router.get("/my", protect, getUserBookings);
-
 router.get("/admin", protect, adminOnly, getAllBookings);
 router.put("/admin/:id", protect, adminOnly, updateBookingStatus);
 
