@@ -47,8 +47,8 @@ const bookingSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-bookingSchema.index({ email: 1, date: 1, time: 1 }, { unique: true });
-bookingSchema.index({ user: 1, date: 1, time: 1 }, { unique: true, sparse: true });
+bookingSchema.index({ email: 1, date: 1, time: 1 });
+bookingSchema.index({ user: 1, date: 1, time: 1 });
 
 const Booking = mongoose.model("Booking", bookingSchema);
 

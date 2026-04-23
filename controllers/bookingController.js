@@ -1,6 +1,5 @@
 import Booking from "../models/bookingModel.js";
 
-// ---------------- CREATE BOOKING ----------------
 export const createBooking = async (req, res) => {
   try {
     let { name, email, phone, members, date, time, message } = req.body;
@@ -31,7 +30,6 @@ export const createBooking = async (req, res) => {
       });
     }
 
-    // prevent duplicate booking same slot
     const existingUserBooking = await Booking.findOne({
       user: req.user._id,
       date,
@@ -45,7 +43,6 @@ export const createBooking = async (req, res) => {
       });
     }
 
-    // slot limit check
     const slotCount = await Booking.countDocuments({ date, time });
 
     if (slotCount >= 5) {
@@ -72,14 +69,15 @@ export const createBooking = async (req, res) => {
       booking,
     });
   } catch (error) {
+    console.log("BOOKING ERROR:", error);
+
     return res.status(500).json({
       success: false,
-      message: "Booking failed",
+      message: error.message || "Booking failed",
     });
   }
 };
 
-// ---------------- GET USER BOOKINGS ----------------
 export const getUserBookings = async (req, res) => {
   try {
     if (!req.user) {
@@ -105,7 +103,6 @@ export const getUserBookings = async (req, res) => {
   }
 };
 
-// ---------------- GET ALL BOOKINGS (ADMIN) ----------------
 export const getAllBookings = async (req, res) => {
   try {
     const bookings = await Booking.find()
@@ -124,7 +121,6 @@ export const getAllBookings = async (req, res) => {
   }
 };
 
-// ---------------- UPDATE BOOKING STATUS ----------------
 export const updateBookingStatus = async (req, res) => {
   try {
     const { status } = req.body;
