@@ -1,11 +1,22 @@
 import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import User from "../models/userModel.js"; // ✅ keep this consistent
-import { protect, adminOnly } from "../middlewares/authMiddleware.js"; // ✅ match middleware name
+import User from "../models/userModel.js";
+import { protect, adminOnly } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
+// 🔥 Helper: generate token
+const generateToken = (user) => {
+  return jwt.sign(
+    {
+      id: user._id,
+      isAdmin: user.isAdmin,
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: "7d" }
+  );
+};
 
 // ================= REGISTER =================
 router.post("/register", async (req, res) => {
@@ -20,7 +31,6 @@ router.post("/register", async (req, res) => {
     }
 
     const existingUser = await User.findOne({ email });
-
     if (existingUser) {
       return res.status(400).json({
         success: false,
@@ -30,15 +40,27 @@ router.post("/register", async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await User.create({
+    const user = await User.create({
       name,
       email,
       password: hashedPassword,
+      isAdmin: false,
+    });
+
+    const token = generateToken(user);
+
+    // 🔥 FIXED COOKIE
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,        // ✅ REQUIRED for production
+      sameSite: "none",    // ✅ REQUIRED for cross-origin
     });
 
     res.status(201).json({
       success: true,
       message: "User registered successfully",
+      token,
+      user,
     });
 
   } catch (err) {
@@ -50,12 +72,9 @@ router.post("/register", async (req, res) => {
   }
 });
 
-
 // ================= LOGIN =================
 router.post("/login", async (req, res) => {
   try {
-    console.log("BODY:", req.body);
-
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -83,32 +102,20 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    const token = jwt.sign(
-      {
-        id: user._id,
-        isAdmin: user.isAdmin,
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+    const token = generateToken(user);
 
-    // ✅ OPTIONAL: send token as cookie also
+    // 🔥 FIXED COOKIE
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false, // true in production (HTTPS)
-      sameSite: "Lax",
+      secure: true,       // ✅ REQUIRED
+      sameSite: "none",   // ✅ REQUIRED
     });
 
     res.status(200).json({
       success: true,
       message: "Login successful",
       token,
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        isAdmin: user.isAdmin,
-      },
+      user,
     });
 
   } catch (err) {
@@ -120,11 +127,14 @@ router.post("/login", async (req, res) => {
   }
 });
 
-
 // ================= LOGOUT =================
 router.post("/logout", (req, res) => {
   try {
-    res.clearCookie("token"); // ✅ important if using cookies
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
 
     res.status(200).json({
       success: true,
@@ -138,32 +148,20 @@ router.post("/logout", (req, res) => {
   }
 });
 
-
-// ================= GET USER PROFILE =================
-router.get("/me", protect, async (req, res) => {
-  try {
-    // req.user already attached from middleware
-    res.status(200).json({
-      success: true,
-      user: req.user,
-    });
-  } catch (err) {
-    console.log("PROFILE ERROR:", err.message);
-    res.status(500).json({
-      success: false,
-      message: err.message,
-    });
-  }
+// ================= GET USER =================
+router.get("/me", protect, (req, res) => {
+  res.status(200).json({
+    success: true,
+    user: req.user,
+  });
 });
 
-
-// ================= ADMIN ROUTE =================
+// ================= ADMIN =================
 router.get("/admin", protect, adminOnly, (req, res) => {
   res.status(200).json({
     success: true,
     message: "Welcome Admin",
   });
 });
-
 
 export default router;

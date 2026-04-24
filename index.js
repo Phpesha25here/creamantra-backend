@@ -21,12 +21,15 @@ dotenv.config();
 
 const app = express();
 
+// ================= MIDDLEWARE =================
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+// 🔥 FIX: TRUST PROXY (IMPORTANT FOR RENDER COOKIES)
+app.set("trust proxy", 1);
 
+// ================= CORS (FIXED) =================
 app.use(
   cors({
     origin: [
@@ -38,18 +41,10 @@ app.use(
   })
 );
 
-const startServer = async () => {
-  try {
-    await connectDB();
-    connectCloudinary();
-  } catch (error) {
-    console.error(error);
-    process.exit(1);
-  }
-};
+// ================= STATIC =================
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
-startServer();
-
+// ================= ROUTES =================
 app.get("/", (req, res) => {
   res.send("Server is running 🚀");
 });
@@ -64,13 +59,30 @@ app.use("/api/contact", contactRoutes);
 app.use("/api/report", reportRoutes);
 app.use("/api/users", userRoutes);
 
+// ================= ERROR HANDLER =================
 app.use((err, req, res, next) => {
+  console.error(err);
   res.status(500).json({
     success: false,
     message: err.message || "Internal Server Error",
   });
 });
 
+// ================= START SERVER =================
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT);
+const startServer = async () => {
+  try {
+    await connectDB();
+    await connectCloudinary();
+
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error("Server start failed:", error);
+    process.exit(1);
+  }
+};
+
+startServer();

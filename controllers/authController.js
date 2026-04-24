@@ -13,6 +13,7 @@ const generateToken = (user) => {
   );
 };
 
+
 export const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -44,24 +45,23 @@ export const registerUser = async (req, res) => {
 
     const token = generateToken(user);
 
-    return res
-      .cookie("token", token, {
-        httpOnly: true,
-        secure: false,
-        sameSite: "lax",
-      })
-      .status(201)
-      .json({
-        success: true,
-        message: "User registered successfully",
-        token,
-        user: {
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          isAdmin: user.isAdmin,
-        },
-      });
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,           
+      sameSite: "none",       
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "User registered successfully",
+      token,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        isAdmin: user.isAdmin,
+      },
+    });
   } catch {
     return res.status(500).json({
       success: false,
@@ -69,6 +69,7 @@ export const registerUser = async (req, res) => {
     });
   }
 };
+
 
 export const loginUser = async (req, res) => {
   try {
@@ -101,24 +102,23 @@ export const loginUser = async (req, res) => {
 
     const token = generateToken(user);
 
-    return res
-      .cookie("token", token, {
-        httpOnly: true,
-        secure: false,
-        sameSite: "lax",
-      })
-      .status(200)
-      .json({
-        success: true,
-        message: "Login successful",
-        token,
-        user: {
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          isAdmin: user.isAdmin,
-        },
-      });
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,          
+      sameSite: "none",    
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Login successful",
+      token, 
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        isAdmin: user.isAdmin,
+      },
+    });
   } catch {
     return res.status(500).json({
       success: false,
@@ -127,18 +127,19 @@ export const loginUser = async (req, res) => {
   }
 };
 
+
 export const logoutUser = async (req, res) => {
   try {
-    return res
-      .clearCookie("token", {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: false,
-      })
-      .json({
-        success: true,
-        message: "Logged out successfully",
-      });
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
+
+    return res.json({
+      success: true,
+      message: "Logged out successfully",
+    });
   } catch {
     return res.status(500).json({
       success: false,
@@ -146,6 +147,7 @@ export const logoutUser = async (req, res) => {
     });
   }
 };
+
 
 export const getMe = async (req, res) => {
   try {
